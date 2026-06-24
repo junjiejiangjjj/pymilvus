@@ -38,6 +38,7 @@ from pymilvus.exceptions import (
     PartitionAlreadyExistException,
     SchemaNotReadyException,
 )
+from pymilvus.function_chain import FunctionChain
 from pymilvus.grpc_gen import schema_pb2
 from pymilvus.settings import Config
 
@@ -729,6 +730,7 @@ class Collection:
         timeout: Optional[float] = None,
         round_decimal: int = -1,
         ranker: Optional[Union[Function, FunctionScore]] = None,
+        function_chains: Optional[Union[FunctionChain, List[FunctionChain]]] = None,
         highlighter: Optional[Highlighter] = None,
         search_aggregation: Optional[SearchAggregation] = None,
         **kwargs,
@@ -880,6 +882,7 @@ class Collection:
             timeout=timeout,
             schema=self._schema_dict,
             ranker=ranker,
+            function_chains=function_chains,
             highlighter=highlighter,
             search_aggregation=search_aggregation,
             context=context,
