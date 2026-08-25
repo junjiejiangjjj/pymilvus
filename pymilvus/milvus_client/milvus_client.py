@@ -358,11 +358,12 @@ class MilvusClient(BaseMilvusClient):
         self,
         collection_name: str,
         reqs: List[AnnSearchRequest],
-        ranker: Union[BaseRanker, Function],
+        ranker: Optional[Union[BaseRanker, Function]] = None,
         limit: int = 10,
         output_fields: Optional[List[str]] = None,
         timeout: Optional[float] = None,
         partition_names: Optional[List[str]] = None,
+        function_chains: Optional[Union[FunctionChain, List[FunctionChain]]] = None,
         **kwargs,
     ) -> List[List[dict]]:
         """Conducts multi vector similarity search with a rerank for rearrangement.
@@ -413,6 +414,7 @@ class MilvusClient(BaseMilvusClient):
             partition_names=partition_names,
             output_fields=output_fields,
             timeout=timeout,
+            function_chains=function_chains,
             context=self._generate_call_context(**kwargs),
             **kwargs,
         )
