@@ -29,6 +29,7 @@ class DataType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     Date: _ClassVar[DataType]
     Time: _ClassVar[DataType]
     Decimal: _ClassVar[DataType]
+    UUID: _ClassVar[DataType]
     BinaryVector: _ClassVar[DataType]
     FloatVector: _ClassVar[DataType]
     Float16Vector: _ClassVar[DataType]
@@ -83,6 +84,7 @@ Mol: DataType
 Date: DataType
 Time: DataType
 Decimal: DataType
+UUID: DataType
 BinaryVector: DataType
 FloatVector: DataType
 Float16Vector: DataType
@@ -111,7 +113,7 @@ FunctionChainStageL2Rerank: FunctionChainStage
 FunctionChainStagePostProcess: FunctionChainStage
 
 class FieldSchema(_message.Message):
-    __slots__ = ("fieldID", "name", "is_primary_key", "description", "data_type", "type_params", "index_params", "autoID", "state", "element_type", "default_value", "is_dynamic", "is_partition_key", "is_clustering_key", "nullable", "is_function_output", "external_field")
+    __slots__ = ("fieldID", "name", "is_primary_key", "description", "data_type", "type_params", "index_params", "autoID", "state", "element_type", "default_value", "is_dynamic", "is_partition_key", "is_clustering_key", "nullable", "is_function_output", "external_field", "type_schema", "element_nullable")
     FIELDID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     IS_PRIMARY_KEY_FIELD_NUMBER: _ClassVar[int]
@@ -129,6 +131,8 @@ class FieldSchema(_message.Message):
     NULLABLE_FIELD_NUMBER: _ClassVar[int]
     IS_FUNCTION_OUTPUT_FIELD_NUMBER: _ClassVar[int]
     EXTERNAL_FIELD_FIELD_NUMBER: _ClassVar[int]
+    TYPE_SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    ELEMENT_NULLABLE_FIELD_NUMBER: _ClassVar[int]
     fieldID: int
     name: str
     is_primary_key: bool
@@ -146,7 +150,9 @@ class FieldSchema(_message.Message):
     nullable: bool
     is_function_output: bool
     external_field: str
-    def __init__(self, fieldID: _Optional[int] = ..., name: _Optional[str] = ..., is_primary_key: bool = ..., description: _Optional[str] = ..., data_type: _Optional[_Union[DataType, str]] = ..., type_params: _Optional[_Iterable[_Union[_common_pb2.KeyValuePair, _Mapping]]] = ..., index_params: _Optional[_Iterable[_Union[_common_pb2.KeyValuePair, _Mapping]]] = ..., autoID: bool = ..., state: _Optional[_Union[FieldState, str]] = ..., element_type: _Optional[_Union[DataType, str]] = ..., default_value: _Optional[_Union[ValueField, _Mapping]] = ..., is_dynamic: bool = ..., is_partition_key: bool = ..., is_clustering_key: bool = ..., nullable: bool = ..., is_function_output: bool = ..., external_field: _Optional[str] = ...) -> None: ...
+    type_schema: TypeSchema
+    element_nullable: bool
+    def __init__(self, fieldID: _Optional[int] = ..., name: _Optional[str] = ..., is_primary_key: bool = ..., description: _Optional[str] = ..., data_type: _Optional[_Union[DataType, str]] = ..., type_params: _Optional[_Iterable[_Union[_common_pb2.KeyValuePair, _Mapping]]] = ..., index_params: _Optional[_Iterable[_Union[_common_pb2.KeyValuePair, _Mapping]]] = ..., autoID: bool = ..., state: _Optional[_Union[FieldState, str]] = ..., element_type: _Optional[_Union[DataType, str]] = ..., default_value: _Optional[_Union[ValueField, _Mapping]] = ..., is_dynamic: bool = ..., is_partition_key: bool = ..., is_clustering_key: bool = ..., nullable: bool = ..., is_function_output: bool = ..., external_field: _Optional[str] = ..., type_schema: _Optional[_Union[TypeSchema, _Mapping]] = ..., element_nullable: bool = ...) -> None: ...
 
 class FunctionSchema(_message.Message):
     __slots__ = ("name", "id", "description", "type", "input_field_names", "input_field_ids", "output_field_names", "output_field_ids", "params")
@@ -369,6 +375,12 @@ class StringArray(_message.Message):
     data: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, data: _Optional[_Iterable[str]] = ...) -> None: ...
 
+class UUIDArray(_message.Message):
+    __slots__ = ("data",)
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    data: _containers.RepeatedScalarFieldContainer[bytes]
+    def __init__(self, data: _Optional[_Iterable[bytes]] = ...) -> None: ...
+
 class ArrayArray(_message.Message):
     __slots__ = ("data", "element_type")
     DATA_FIELD_NUMBER: _ClassVar[int]
@@ -450,7 +462,7 @@ class ValueField(_message.Message):
     def __init__(self, bool_data: bool = ..., int_data: _Optional[int] = ..., long_data: _Optional[int] = ..., float_data: _Optional[float] = ..., double_data: _Optional[float] = ..., string_data: _Optional[str] = ..., bytes_data: _Optional[bytes] = ..., timestamptz_data: _Optional[int] = ..., date_data: _Optional[int] = ..., time_data: _Optional[int] = ...) -> None: ...
 
 class ScalarField(_message.Message):
-    __slots__ = ("bool_data", "int_data", "long_data", "float_data", "double_data", "string_data", "bytes_data", "array_data", "json_data", "geometry_data", "timestamptz_data", "geometry_wkt_data", "mol_data", "mol_smiles_data", "date_data", "time_data")
+    __slots__ = ("bool_data", "int_data", "long_data", "float_data", "double_data", "string_data", "bytes_data", "array_data", "json_data", "geometry_data", "timestamptz_data", "geometry_wkt_data", "mol_data", "mol_smiles_data", "date_data", "time_data", "valid_data")
     BOOL_DATA_FIELD_NUMBER: _ClassVar[int]
     INT_DATA_FIELD_NUMBER: _ClassVar[int]
     LONG_DATA_FIELD_NUMBER: _ClassVar[int]
@@ -467,6 +479,7 @@ class ScalarField(_message.Message):
     MOL_SMILES_DATA_FIELD_NUMBER: _ClassVar[int]
     DATE_DATA_FIELD_NUMBER: _ClassVar[int]
     TIME_DATA_FIELD_NUMBER: _ClassVar[int]
+    VALID_DATA_FIELD_NUMBER: _ClassVar[int]
     bool_data: BoolArray
     int_data: IntArray
     long_data: LongArray
@@ -483,7 +496,8 @@ class ScalarField(_message.Message):
     mol_smiles_data: MolSmilesArray
     date_data: DateArray
     time_data: TimeArray
-    def __init__(self, bool_data: _Optional[_Union[BoolArray, _Mapping]] = ..., int_data: _Optional[_Union[IntArray, _Mapping]] = ..., long_data: _Optional[_Union[LongArray, _Mapping]] = ..., float_data: _Optional[_Union[FloatArray, _Mapping]] = ..., double_data: _Optional[_Union[DoubleArray, _Mapping]] = ..., string_data: _Optional[_Union[StringArray, _Mapping]] = ..., bytes_data: _Optional[_Union[BytesArray, _Mapping]] = ..., array_data: _Optional[_Union[ArrayArray, _Mapping]] = ..., json_data: _Optional[_Union[JSONArray, _Mapping]] = ..., geometry_data: _Optional[_Union[GeometryArray, _Mapping]] = ..., timestamptz_data: _Optional[_Union[TimestamptzArray, _Mapping]] = ..., geometry_wkt_data: _Optional[_Union[GeometryWktArray, _Mapping]] = ..., mol_data: _Optional[_Union[MolArray, _Mapping]] = ..., mol_smiles_data: _Optional[_Union[MolSmilesArray, _Mapping]] = ..., date_data: _Optional[_Union[DateArray, _Mapping]] = ..., time_data: _Optional[_Union[TimeArray, _Mapping]] = ...) -> None: ...
+    valid_data: _containers.RepeatedScalarFieldContainer[bool]
+    def __init__(self, bool_data: _Optional[_Union[BoolArray, _Mapping]] = ..., int_data: _Optional[_Union[IntArray, _Mapping]] = ..., long_data: _Optional[_Union[LongArray, _Mapping]] = ..., float_data: _Optional[_Union[FloatArray, _Mapping]] = ..., double_data: _Optional[_Union[DoubleArray, _Mapping]] = ..., string_data: _Optional[_Union[StringArray, _Mapping]] = ..., bytes_data: _Optional[_Union[BytesArray, _Mapping]] = ..., array_data: _Optional[_Union[ArrayArray, _Mapping]] = ..., json_data: _Optional[_Union[JSONArray, _Mapping]] = ..., geometry_data: _Optional[_Union[GeometryArray, _Mapping]] = ..., timestamptz_data: _Optional[_Union[TimestamptzArray, _Mapping]] = ..., geometry_wkt_data: _Optional[_Union[GeometryWktArray, _Mapping]] = ..., mol_data: _Optional[_Union[MolArray, _Mapping]] = ..., mol_smiles_data: _Optional[_Union[MolSmilesArray, _Mapping]] = ..., date_data: _Optional[_Union[DateArray, _Mapping]] = ..., time_data: _Optional[_Union[TimeArray, _Mapping]] = ..., valid_data: _Optional[_Iterable[bool]] = ...) -> None: ...
 
 class SparseFloatArray(_message.Message):
     __slots__ = ("contents", "dim")
@@ -494,7 +508,7 @@ class SparseFloatArray(_message.Message):
     def __init__(self, contents: _Optional[_Iterable[bytes]] = ..., dim: _Optional[int] = ...) -> None: ...
 
 class VectorField(_message.Message):
-    __slots__ = ("dim", "float_vector", "binary_vector", "float16_vector", "bfloat16_vector", "sparse_float_vector", "int8_vector", "vector_array")
+    __slots__ = ("dim", "float_vector", "binary_vector", "float16_vector", "bfloat16_vector", "sparse_float_vector", "int8_vector", "vector_array", "valid_data")
     DIM_FIELD_NUMBER: _ClassVar[int]
     FLOAT_VECTOR_FIELD_NUMBER: _ClassVar[int]
     BINARY_VECTOR_FIELD_NUMBER: _ClassVar[int]
@@ -503,6 +517,7 @@ class VectorField(_message.Message):
     SPARSE_FLOAT_VECTOR_FIELD_NUMBER: _ClassVar[int]
     INT8_VECTOR_FIELD_NUMBER: _ClassVar[int]
     VECTOR_ARRAY_FIELD_NUMBER: _ClassVar[int]
+    VALID_DATA_FIELD_NUMBER: _ClassVar[int]
     dim: int
     float_vector: FloatArray
     binary_vector: bytes
@@ -511,7 +526,8 @@ class VectorField(_message.Message):
     sparse_float_vector: SparseFloatArray
     int8_vector: bytes
     vector_array: VectorArray
-    def __init__(self, dim: _Optional[int] = ..., float_vector: _Optional[_Union[FloatArray, _Mapping]] = ..., binary_vector: _Optional[bytes] = ..., float16_vector: _Optional[bytes] = ..., bfloat16_vector: _Optional[bytes] = ..., sparse_float_vector: _Optional[_Union[SparseFloatArray, _Mapping]] = ..., int8_vector: _Optional[bytes] = ..., vector_array: _Optional[_Union[VectorArray, _Mapping]] = ...) -> None: ...
+    valid_data: _containers.RepeatedScalarFieldContainer[bool]
+    def __init__(self, dim: _Optional[int] = ..., float_vector: _Optional[_Union[FloatArray, _Mapping]] = ..., binary_vector: _Optional[bytes] = ..., float16_vector: _Optional[bytes] = ..., bfloat16_vector: _Optional[bytes] = ..., sparse_float_vector: _Optional[_Union[SparseFloatArray, _Mapping]] = ..., int8_vector: _Optional[bytes] = ..., vector_array: _Optional[_Union[VectorArray, _Mapping]] = ..., valid_data: _Optional[_Iterable[bool]] = ...) -> None: ...
 
 class VectorArray(_message.Message):
     __slots__ = ("dim", "data", "element_type")
@@ -566,12 +582,14 @@ class FieldData(_message.Message):
     def __init__(self, type: _Optional[_Union[DataType, str]] = ..., field_name: _Optional[str] = ..., scalars: _Optional[_Union[ScalarField, _Mapping]] = ..., vectors: _Optional[_Union[VectorField, _Mapping]] = ..., struct_arrays: _Optional[_Union[StructArrayField, _Mapping]] = ..., field_id: _Optional[int] = ..., is_dynamic: bool = ..., valid_data: _Optional[_Iterable[bool]] = ...) -> None: ...
 
 class IDs(_message.Message):
-    __slots__ = ("int_id", "str_id")
+    __slots__ = ("int_id", "str_id", "uuid_id")
     INT_ID_FIELD_NUMBER: _ClassVar[int]
     STR_ID_FIELD_NUMBER: _ClassVar[int]
+    UUID_ID_FIELD_NUMBER: _ClassVar[int]
     int_id: LongArray
     str_id: StringArray
-    def __init__(self, int_id: _Optional[_Union[LongArray, _Mapping]] = ..., str_id: _Optional[_Union[StringArray, _Mapping]] = ...) -> None: ...
+    uuid_id: UUIDArray
+    def __init__(self, int_id: _Optional[_Union[LongArray, _Mapping]] = ..., str_id: _Optional[_Union[StringArray, _Mapping]] = ..., uuid_id: _Optional[_Union[UUIDArray, _Mapping]] = ...) -> None: ...
 
 class SearchIteratorV2Results(_message.Message):
     __slots__ = ("token", "last_bound")
@@ -759,3 +777,15 @@ class TemplateArrayValueArray(_message.Message):
     DATA_FIELD_NUMBER: _ClassVar[int]
     data: _containers.RepeatedCompositeFieldContainer[TemplateArrayValue]
     def __init__(self, data: _Optional[_Iterable[_Union[TemplateArrayValue, _Mapping]]] = ...) -> None: ...
+
+class TypeSchema(_message.Message):
+    __slots__ = ("leaf_type", "array_element", "type_params", "nullable")
+    LEAF_TYPE_FIELD_NUMBER: _ClassVar[int]
+    ARRAY_ELEMENT_FIELD_NUMBER: _ClassVar[int]
+    TYPE_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    NULLABLE_FIELD_NUMBER: _ClassVar[int]
+    leaf_type: DataType
+    array_element: TypeSchema
+    type_params: _containers.RepeatedCompositeFieldContainer[_common_pb2.KeyValuePair]
+    nullable: bool
+    def __init__(self, leaf_type: _Optional[_Union[DataType, str]] = ..., array_element: _Optional[_Union[TypeSchema, _Mapping]] = ..., type_params: _Optional[_Iterable[_Union[_common_pb2.KeyValuePair, _Mapping]]] = ..., nullable: bool = ...) -> None: ...
